@@ -13,7 +13,6 @@ import './Voyager.css';
 import './viewport.css';
 
 import ErrorBar from './utils/ErrorBar';
-import LoadingAnimation from './utils/LoadingAnimation';
 import DocPanel from './panel/DocPanel';
 
 import { SVGRender } from './../graph/';
@@ -28,6 +27,8 @@ import { WorkerCallback } from '../utils/types';
 import Settings from './settings/Settings';
 import { theme } from './MUITheme';
 
+import { buildSchema, introspectionFromSchema } from 'graphql'
+
 type IntrospectionProvider = (query: string) => Promise<any>;
 
 export interface VoyagerDisplayOptions {
@@ -40,7 +41,8 @@ export interface VoyagerDisplayOptions {
 
 export interface VoyagerProps {
   _schemaPresets?: any;
-  introspection: IntrospectionProvider | Object | boolean;
+  introspection?: IntrospectionProvider | Object | boolean;
+  sdl?: string;
   displayOptions?: VoyagerDisplayOptions;
   hideDocs?: boolean;
   hideSettings?: boolean;
@@ -110,6 +112,9 @@ export default class Voyager extends React.Component<VoyagerProps> {
       });
     } else if (this.props.introspection) {
       this.store.dispatch(changeSchema(this.props.introspection, displayOpts));
+    } else if (this.props.sdl) {
+      let schema = { data: introspectionFromSchema(buildSchema(this.props.sdl)) };
+      this.store.dispatch(changeSchema(schema, displayOpts));
     }
   }
 
@@ -145,7 +150,6 @@ export default class Voyager extends React.Component<VoyagerProps> {
             {!hideSettings && <Settings />}
             <div ref="viewport" className="viewport" />
             <ErrorBar />
-            <LoadingAnimation />
           </div>
         </MuiThemeProvider>
       </Provider>
